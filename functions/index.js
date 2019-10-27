@@ -20,11 +20,10 @@ const getStatus = function(soilMoistureSensor) {
 }
 
 exports.addRecord = functions.database
-  .ref(functions.config().database.id)
+  .ref(functions.config().database.id + '/' + functions.config().database.key)
   .onUpdate((change, context) => {
-    const plantData = change.after._data
+    const soilMoistureSensor = change.after._data
     let transaction = admin.firestore().runTransaction(t => {
-      let soilMoistureSensor = plantData[functions.config().database.key]
       let status = getStatus(soilMoistureSensor)
       return t
         .get(docRef)
