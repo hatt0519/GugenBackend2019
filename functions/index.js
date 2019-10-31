@@ -47,13 +47,14 @@ const update = (change, context, getStatus, status) => {
   })
 }
 
-const updateGirlStatus = (ref, onUpdate) => {
+const updateGirlStatus = (ref, onUpdate, status) => {
   return functions.database.ref(ref).onUpdate((change, context) => {
-    update(change, context, getStatus, new Status(1000.0, 500.0, 200.0))
+    update(change, context, getStatus, status)
   })
 }
 
 exports.updateGirlStatusByMoisture = updateGirlStatus(
   functions.config().database.id + '/' + functions.config().database.key,
-  update
+  update,
+  new Status(1000.0, 500.0, 200.0)
 )
