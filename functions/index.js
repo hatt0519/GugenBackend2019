@@ -6,15 +6,20 @@ const docRef = admin
   .collection(functions.config().firestore.collection)
   .doc(functions.config().firestore.document)
 
-const SOIL_MOISTURE_SENSOR_GOOD = 1000.0
-const SOIL_MOISTURE_SENSOR_NORMAL = 500.0
-const SOIL_MOISTURE_SENSOR_BAD = 300.0
-const getStatusBySoilMoistureSensor = function(soilMoistureSensor) {
-  if (soilMoistureSensor >= SOIL_MOISTURE_SENSOR_GOOD) {
+class Status {
+  constructor(good, normal, bad) {
+    this.good = good
+    this.normal = normal
+    this.bad = bad
+  }
+}
+
+const getStatusBySoilMoistureSensor = function(soilMoistureSensor, status) {
+  if (soilMoistureSensor >= status.good) {
     return 0
   } else if (
-    soilMoistureSensor > SOIL_MOISTURE_SENSOR_NORMAL &&
-    soilMoistureSensor < SOIL_MOISTURE_SENSOR_GOOD
+    soilMoistureSensor > status.mormal &&
+    soilMoistureSensor < status.bad
   ) {
     return 3
   } else {
@@ -22,14 +27,14 @@ const getStatusBySoilMoistureSensor = function(soilMoistureSensor) {
   }
 }
 
-const update = (change, context, getStatus) => {
+const update = (change, context, getStatus, status) => {
   const sensorValue = change.after._data
   let transaction = admin.firestore().runTransaction(t => {
-    let status = getStatus(sensorValue)
+    let statusResult = getStatus(sensorValue, status)
     return t
       .get(docRef)
       .then(doc => {
-        t.update(docRef, { status: status })
+        t.update(docRef, { status: statusResult })
         return Promise.resolve('success')
       })
       .then(result => {
@@ -44,7 +49,12 @@ const update = (change, context, getStatus) => {
 
 const updateGirlStatus = (ref, onUpdate) => {
   return functions.database.ref(ref).onUpdate((change, context) => {
-    update(change, context, getStatusBySoilMoistureSensor)
+    update(
+      change,
+      context,
+      getStatusBySoilMoistureSensor,
+      new Status(1000.0, 500.0, 200.0)
+    )
   })
 }
 
