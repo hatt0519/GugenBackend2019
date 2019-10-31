@@ -14,7 +14,7 @@ class Status {
   }
 }
 
-const getStatusBySoilMoistureSensor = function(soilMoistureSensor, status) {
+const getStatus = function(soilMoistureSensor, status) {
   if (soilMoistureSensor >= status.good) {
     return 0
   } else if (
@@ -49,12 +49,7 @@ const update = (change, context, getStatus, status) => {
 
 const updateGirlStatus = (ref, onUpdate) => {
   return functions.database.ref(ref).onUpdate((change, context) => {
-    update(
-      change,
-      context,
-      getStatusBySoilMoistureSensor,
-      new Status(1000.0, 500.0, 200.0)
-    )
+    update(change, context, getStatus, new Status(1000.0, 500.0, 200.0))
   })
 }
 
