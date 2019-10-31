@@ -38,6 +38,12 @@ const update = (change, context) => {
       })
   })
 }
-exports.updateGirlStatusByMoisture = functions.database
-  .ref(functions.config().database.id + '/' + functions.config().database.key)
-  .onUpdate(update)
+
+const updateGirlStatus = (ref, onUpdate) => {
+  return functions.database.ref(ref).onUpdate(update)
+}
+
+exports.updateGirlStatusByMoisture = updateGirlStatus(
+  functions.config().database.id + '/' + functions.config().database.key,
+  update
+)
