@@ -58,3 +58,8 @@ exports.updateGirlStatusByMoisture = updateGirlStatus(
   update,
   new Status(1000.0, 500.0, 200.0)
 )
+exports.updateGirlStatusBySunlight = updateGirlStatus(
+  functions.config().database.id + '/' + functions.config().database.key2,
+  update,
+  new Status(1000.0, 500.0, 200.0)
+)
