@@ -19,24 +19,25 @@ const getStatus = function(soilMoistureSensor) {
   }
 }
 
-exports.addRecord = functions.database
-  .ref(functions.config().database.id + '/' + functions.config().database.key)
-  .onUpdate((change, context) => {
-    const soilMoistureSensor = change.after._data
-    let transaction = admin.firestore().runTransaction(t => {
-      let status = getStatus(soilMoistureSensor)
-      return t
-        .get(docRef)
-        .then(doc => {
-          t.update(docRef, { status: status })
-          return Promise.resolve('success')
-        })
-        .then(result => {
-          console.log('Transaction success', result)
-          return ''
-        })
-        .catch(e => {
-          console.log('Transaction failure:', err)
-        })
-    })
+const update = (change, context) => {
+  const soilMoistureSensor = change.after._data
+  let transaction = admin.firestore().runTransaction(t => {
+    let status = getStatus(soilMoistureSensor)
+    return t
+      .get(docRef)
+      .then(doc => {
+        t.update(docRef, { status: status })
+        return Promise.resolve('success')
+      })
+      .then(result => {
+        console.log('Transaction success', result)
+        return ''
+      })
+      .catch(e => {
+        console.log('Transaction failure:', err)
+      })
   })
+}
+exports.updateGirlStatusByMoisture = functions.database
+  .ref(functions.config().database.id + '/' + functions.config().database.key)
+  .onUpdate(update)
