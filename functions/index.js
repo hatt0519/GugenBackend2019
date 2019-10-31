@@ -22,10 +22,10 @@ const getStatusBySoilMoistureSensor = function(soilMoistureSensor) {
   }
 }
 
-const update = (change, context) => {
+const update = (change, context, getStatus) => {
   const sensorValue = change.after._data
   let transaction = admin.firestore().runTransaction(t => {
-    let status = getStatusBySoilMoistureSensor(sensorValue)
+    let status = getStatus(sensorValue)
     return t
       .get(docRef)
       .then(doc => {
@@ -43,7 +43,9 @@ const update = (change, context) => {
 }
 
 const updateGirlStatus = (ref, onUpdate) => {
-  return functions.database.ref(ref).onUpdate(update)
+  return functions.database.ref(ref).onUpdate((change, context) => {
+    update(change, context, getStatusBySoilMoistureSensor)
+  })
 }
 
 exports.updateGirlStatusByMoisture = updateGirlStatus(
