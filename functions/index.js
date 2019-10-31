@@ -6,13 +6,16 @@ const docRef = admin
   .collection(functions.config().firestore.collection)
   .doc(functions.config().firestore.document)
 
-const GOOD = 1000.0
-const NORMAL = 500.0
-const BAD = 300.0
-const getStatus = function(soilMoistureSensor) {
-  if (soilMoistureSensor >= GOOD) {
+const SOIL_MOISTURE_SENSOR_GOOD = 1000.0
+const SOIL_MOISTURE_SENSOR_NORMAL = 500.0
+const SOIL_MOISTURE_SENSOR_BAD = 300.0
+const getStatusBySoilMoistureSensor = function(soilMoistureSensor) {
+  if (soilMoistureSensor >= SOIL_MOISTURE_SENSOR_GOOD) {
     return 0
-  } else if (soilMoistureSensor > NORMAL && soilMoistureSensor < GOOD) {
+  } else if (
+    soilMoistureSensor > SOIL_MOISTURE_SENSOR_NORMAL &&
+    soilMoistureSensor < SOIL_MOISTURE_SENSOR_GOOD
+  ) {
     return 3
   } else {
     return 1
@@ -22,7 +25,7 @@ const getStatus = function(soilMoistureSensor) {
 const update = (change, context) => {
   const sensorValue = change.after._data
   let transaction = admin.firestore().runTransaction(t => {
-    let status = getStatus(sensorValue)
+    let status = getStatusBySoilMoistureSensor(sensorValue)
     return t
       .get(docRef)
       .then(doc => {
