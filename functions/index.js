@@ -6,30 +6,36 @@ const docRef = admin
   .collection(functions.config().firestore.collection)
   .doc(functions.config().firestore.document)
 
-class Status {
-  constructor(good, bad) {
-    this.good = good
-    this.bad = bad
+class Threshold {
+  constructor(threshold) {
+    this.value = threshold
   }
 }
 
-const getStatus = function(soilMoistureSensor, status) {
-  if (soilMoistureSensor >= status.good) {
-    return 0
-  } else if (
-    soilMoistureSensor < status.good &&
-    soilMoistureSensor > status.bad
-  ) {
+const Status = {
+  MOISTURE: Symbol('moisture'),
+  SUNLIGHT: Symbol('sunlight'),
+}
+
+const getStatus = function(soilMoistureSensor, threshold, status) {
+  if (soilMoistureSensor >= threshold.value) {
     return 3
   } else {
-    return 1
+    switch (status) {
+      case Status.MOISTURE:
+        return 1
+      case Status.SUNLIGHT:
+        return 2
+      default:
+        break
+    }
   }
 }
 
-const update = (change, context, getStatus, status) => {
+const update = (change, context, getStatus, threshold, status) => {
   const sensorValue = change.after._data
   let transaction = admin.firestore().runTransaction(t => {
-    let statusResult = getStatus(sensorValue, status)
+    let statusResult = getStatus(sensorValue, threshold, status)
     return t
       .get(docRef)
       .then(doc => {
@@ -41,24 +47,26 @@ const update = (change, context, getStatus, status) => {
         return ''
       })
       .catch(e => {
-        console.log('Transaction failure:', err)
+        console.log('Transaction failure:', e)
       })
   })
 }
 
-const updateGirlStatus = (ref, onUpdate, status) => {
+const updateGirlStatus = (ref, onUpdate, threshold, status) => {
   return functions.database.ref(ref).onUpdate((change, context) => {
-    update(change, context, getStatus, status)
+    update(change, context, getStatus, threshold, status)
   })
 }
 
 exports.updateGirlStatusByMoisture = updateGirlStatus(
   functions.config().database.id + '/' + functions.config().database.key,
   update,
-  new Status(1000.0, 500.0, 200.0)
+  new Threshold(3000.0),
+  Status.MOISTURE
 )
 exports.updateGirlStatusBySunlight = updateGirlStatus(
   functions.config().database.id + '/' + functions.config().database.key2,
   update,
-  new Status(1000.0, 500.0, 200.0)
+  new Threshold(800.0),
+  Status.SUNLIGHT
 )
