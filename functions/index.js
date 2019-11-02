@@ -7,9 +7,8 @@ const docRef = admin
   .doc(functions.config().firestore.document)
 
 class Status {
-  constructor(good, normal, bad) {
+  constructor(good, bad) {
     this.good = good
-    this.normal = normal
     this.bad = bad
   }
 }
@@ -18,8 +17,8 @@ const getStatus = function(soilMoistureSensor, status) {
   if (soilMoistureSensor >= status.good) {
     return 0
   } else if (
-    soilMoistureSensor > status.mormal &&
-    soilMoistureSensor < status.bad
+    soilMoistureSensor < status.good &&
+    soilMoistureSensor > status.bad
   ) {
     return 3
   } else {
